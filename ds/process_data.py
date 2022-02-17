@@ -13,6 +13,8 @@ from typing import NoReturn, Callable
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
+from nltk.corpus import stopwords
+from nltk.stem import SnowballStemmer
 import spacy
 
 
@@ -86,6 +88,17 @@ def split_train_test_data(data_file_path: str, out_folder_path: str) -> NoReturn
     save_to_csv(reviews_test, ratings_test, out_folder_path, "test.csv")
 
 
+def chain_and_apply_functions(funcs: list[Callable[[str], str]], data: str) -> str:
+    """
+    Chain functions with str -> str signature and apply them to the data.
+    """
+
+    for func in funcs:
+        data = func(data)
+
+    return data
+
+
 def remove_punctuations(data: str) -> str:
     """Remove punctuation symbols from input string"""
 
@@ -144,14 +157,15 @@ def clean_str(data: str) -> str:
     'Hi  '
     """
 
-    cleaning_funcs: list[Callable[[str], str]] = [
-        remove_emoji,
-        remove_html,
-        remove_url,
-        remove_punctuations,
-    ]
-    for func in cleaning_funcs:
-        data = func(data)
+    data = chain_and_apply_functions(
+        [
+            remove_emoji,
+            remove_html,
+            remove_url,
+            remove_punctuations,
+        ],
+        data
+    )
 
     return data
 
@@ -243,6 +257,55 @@ def lemmatize(data: str) -> str:
     res = " ".join(token.lemma_ for token in doc)
 
     return res
+
+
+def remove_stopwords(data: str) -> str:
+    """
+    Remove stopwords from input string
+
+    >>> remove_stopwords("What a good day!")
+    'What good day!'
+    """
+
+    cached_stopwords = stopwords.words("english")
+
+    return " ".join([word for word in data.split() if word not in cached_stopwords])
+
+
+def stem_text(data: str) -> str:
+    """
+    Apply snowball stemmer to input string.
+
+    >>> stem_text("singing easily fairly university cared")
+    'sing easili fair univers care'
+    """
+
+    stemmer = SnowballStemmer(language="english")
+
+    return " ".join([stemmer.stem(word) for word in data.split()])
+
+
+def transform_text(data: str) -> str:
+    """
+    Replace abbreviations -> clean text ->
+    -> lemmatize -> remove stopwords -> stem
+
+    >>> transform_text("I'm going to do something <br> useful <\br> at www.abc.com 😊")
+    'i go someth use'
+    """
+
+    data = chain_and_apply_functions(
+        [
+            replace_abbr,
+            clean_str,
+            lemmatize,
+            remove_stopwords,
+            stem_text
+        ],
+        data
+    )
+
+    return data
 
 
 if __name__ == "__main__":
