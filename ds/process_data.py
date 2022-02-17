@@ -1,6 +1,7 @@
 """
 Module for full dataset preprocessing
-Construct all reviews in one csv file -> extract dataset features
+Construct all reviews in one csv file -> clean data ->
+-> extract dataset features
 """
 
 
