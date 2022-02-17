@@ -7,7 +7,7 @@ Construct all reviews in one csv file -> extract dataset features
 import csv
 import os
 import re
-from typing import NoReturn
+from typing import NoReturn, Callable
 
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -82,6 +82,76 @@ def split_train_test_data(data_file_path: str, out_folder_path: str) -> NoReturn
 
     save_to_csv(reviews_train, ratings_train, out_folder_path, "train.csv")
     save_to_csv(reviews_test, ratings_test, out_folder_path, "test.csv")
+
+
+def remove_punctuations(data: str) -> str:
+    """Remove punctuation symbols from input string"""
+
+    punct_tag = re.compile(r"[^\w\s]")
+    data = punct_tag.sub("", data)
+
+    return data
+
+
+def remove_html(data: str) -> str:
+    """Remove html tags from input string"""
+
+    html_tag = re.compile(r"<.*?>")
+    data = html_tag.sub("", data)
+
+    return data
+
+
+def remove_url(data: str) -> str:
+    """Remove urls from input string"""
+
+    url_clean = re.compile(r"https://\S+|www\.\S+")
+    data = url_clean.sub(r"", data)
+
+    return data
+
+
+def remove_emoji(data: str) -> str:
+    """Remove emojis from input string"""
+
+    emoji_clean = re.compile(
+        "["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+        u"\U00002702-\U000027B0"
+        u"\U000024C2-\U0001F251"
+        "]+",
+        flags=re.UNICODE
+    )
+    data = emoji_clean.sub("", data)
+
+    return data
+
+
+def clean_str(data: str) -> str:
+    """
+    Apply all removing functions to input string.
+    Remove emojis, html tags, urls and punctuation symbols.
+
+    >>> clean_str("Hi <br> name </br>! Welcome to www.some.com 😊")
+    'Hi  name  Welcome to  '
+
+    >>> clean_str("Hi <input /> https://abc.com")
+    'Hi  '
+    """
+
+    cleaning_funcs: list[Callable[[str], str]] = [
+        remove_emoji,
+        remove_html,
+        remove_url,
+        remove_punctuations,
+    ]
+    for func in cleaning_funcs:
+        data = func(data)
+
+    return data
 
 
 if __name__ == "__main__":
