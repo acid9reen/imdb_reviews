@@ -10,12 +10,12 @@ import os
 import re
 from typing import NoReturn, Callable
 
-from sklearn.model_selection import train_test_split
-import pandas as pd
 import numpy as np
+import pandas as pd
+import spacy
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
-import spacy
+from sklearn.model_selection import train_test_split
 
 
 def get_rating_from_filename(filename: str) -> int:
@@ -145,15 +145,15 @@ def remove_emoji(data: str) -> str:
     return data
 
 
-def clean_str(data: str) -> str:
+def clean(data: str) -> str:
     """
     Apply all removing functions to input string.
     Remove emojis, html tags, urls and punctuation symbols.
 
-    >>> clean_str("Hi <br> name </br>! Welcome to www.some.com 😊")
+    >>> clean("Hi <br> name </br>! Welcome to www.some.com 😊")
     'Hi  name  Welcome to  '
 
-    >>> clean_str("Hi <input /> https://abc.com")
+    >>> clean("Hi <input /> https://abc.com")
     'Hi  '
     """
 
@@ -272,11 +272,11 @@ def remove_stopwords(data: str) -> str:
     return " ".join([word for word in data.split() if word not in cached_stopwords])
 
 
-def stem_text(data: str) -> str:
+def stem(data: str) -> str:
     """
     Apply snowball stemmer to input string.
 
-    >>> stem_text("singing easily fairly university cared")
+    >>> stem("singing easily fairly university cared")
     'sing easili fair univers care'
     """
 
@@ -297,10 +297,10 @@ def transform_text(data: str) -> str:
     data = chain_and_apply_functions(
         [
             replace_abbr,
-            clean_str,
+            clean,
             lemmatize,
             remove_stopwords,
-            stem_text
+            stem
         ],
         data
     )
