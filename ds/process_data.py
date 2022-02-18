@@ -67,7 +67,9 @@ def save_to_csv(
 
     df = pd.DataFrame({"review": data.ravel(), "rating": labels})
 
-    with open(os.path.join(out_folder_path, filename), 'w', encoding="utf8") as out:
+    with open(
+            os.path.join(out_folder_path, filename), 'w', encoding="utf8", newline=""
+    ) as out:
         df.to_csv(out)
 
 
@@ -103,7 +105,7 @@ def remove_punctuations(data: str) -> str:
     """Remove punctuation symbols from input string"""
 
     punct_tag = re.compile(r"[^\w\s]")
-    data = punct_tag.sub("", data)
+    data = punct_tag.sub(" ", data)
 
     return data
 
@@ -112,7 +114,7 @@ def remove_html(data: str) -> str:
     """Remove html tags from input string"""
 
     html_tag = re.compile(r"<.*?>")
-    data = html_tag.sub("", data)
+    data = html_tag.sub(" ", data)
 
     return data
 
@@ -121,7 +123,7 @@ def remove_url(data: str) -> str:
     """Remove urls from input string"""
 
     url_clean = re.compile(r"https://\S+|www\.\S+")
-    data = url_clean.sub(r"", data)
+    data = url_clean.sub(r" ", data)
 
     return data
 
@@ -140,7 +142,7 @@ def remove_emoji(data: str) -> str:
         "]+",
         flags=re.UNICODE
     )
-    data = emoji_clean.sub("", data)
+    data = emoji_clean.sub(" ", data)
 
     return data
 
@@ -151,10 +153,10 @@ def clean(data: str) -> str:
     Remove emojis, html tags, urls and punctuation symbols.
 
     >>> clean("Hi <br> name </br>! Welcome to www.some.com 😊")
-    'Hi  name  Welcome to  '
+    'Hi   name    Welcome to    '
 
     >>> clean("Hi <input /> https://abc.com")
-    'Hi  '
+    'Hi    '
     """
 
     data = chain_and_apply_functions(
@@ -306,6 +308,19 @@ def transform_text(data: str) -> str:
     )
 
     return data
+
+
+def prepare_dataset(data_file_path: str) -> NoReturn:
+    df = pd.read_csv(data_file_path)
+
+    transformed_reviews = np.vectorize(transform_text)(df["review"].to_numpy())
+
+    orig_file_name = re.findall(r"\w+\.\w+$", data_file_path)[0]
+    data_file_path = data_file_path.replace(orig_file_name, "")
+
+    save_to_csv(
+        transformed_reviews, df["rating"].to_numpy(), data_file_path, "prepared_" + orig_file_name
+    )
 
 
 if __name__ == "__main__":
