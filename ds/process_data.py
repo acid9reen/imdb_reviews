@@ -1,7 +1,6 @@
 """
 Module for full dataset preprocessing
-Construct all reviews in one csv file -> clean data ->
--> extract dataset features
+Collect all reviews into one csv file -> clean and prepare data
 """
 
 
@@ -311,6 +310,11 @@ def transform_text(data: str) -> str:
 
 
 def prepare_dataset(data_file_path: str) -> NoReturn:
+    """
+    Apply transform_text function to all reviews in provided dataset.
+    Save transformed data into original data directory with 'prepared' prefix.
+    """
+
     df = pd.read_csv(data_file_path)
 
     transformed_reviews = np.vectorize(transform_text)(df["review"].to_numpy())
